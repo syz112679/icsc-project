@@ -1,0 +1,27 @@
+#app {
+  font-family: 'Open Sans', sans-serif;
+}
+
+table {
+    text-align: left;
+    width: 500px;
+    border-collapse: collapse;
+    border: 2px solid #444777;
+}
+
+table th {
+    background: #444777;
+    color: #FFF;
+    padding: 5px;
+    min-width: 30px;
+}
+
+table td {
+    padding: 5px;
+    border-right: 2px solid #444777;
+}
+
+table tbody tr:nth-child(2n) {
+    background: #D4D8F9;
+}
+
