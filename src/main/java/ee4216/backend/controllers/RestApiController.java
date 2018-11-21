@@ -1,6 +1,7 @@
 package ee4216.backend.controllers;
 
 import com.google.gson.JsonObject;
+import ee4216.backend.classes.Route;
 import ee4216.backend.classes.User;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.client.RestTemplate;
@@ -122,57 +124,100 @@ public class RestApiController {
         return "";
     }
     
-    @GetMapping("/bestRouteName")
+    @GetMapping("/getRoute")
     @ResponseBody
-    public String getBestRouteName(@RequestParam(value = "username") String username) {
+    public List getBestRouteName(@RequestParam(value = "username") String username) {
 
-        String routeName =  (String) jdbcTemplate.queryForObject(
-                "SELECT address FROM users WHERE username = ?",
-                (rs, rowNum) -> new String(rs.getString("address")), 
-                username);
+        List routes = new ArrayList(); 
         
-        return routeName;
+        jdbcTemplate.query(
+                "SELECT origin, originAddress, nameAddress1, address1,"
+                        + "nameAddress2, address2,"
+                        + "nameAddress3, address3,"
+                        + "nameAddress4, address4"
+                        + " FROM route WHERE username= ?",
+                (rs, rowNum) -> new Route(rs.getString("origin"), rs.getString("originAddress"), 
+                rs.getString("nameAddress1"), rs.getString("address1"),
+                rs.getString("nameAddress2"), rs.getString("address2"),
+                rs.getString("nameAddress3"), rs.getString("address3"),
+                rs.getString("nameAddress4"), rs.getString("address4")),
+                username
+        ).forEach(route -> routes.add(route));
+        
+        return routes;
     }
     
     @PutMapping("/saveRoute")
     @ResponseBody
     public int getBestRouteName(
             @RequestParam(value = "username") String username,
+            @RequestParam(value = "originAddress") String originAddress,
             @RequestParam(value = "address1") String address1,
             @RequestParam(value = "address2") String address2,
             @RequestParam(value = "address3") String address3,
             @RequestParam(value = "address4") String address4,
+            @RequestParam(value = "origin") String origin,
             @RequestParam(value = "nameAddress1") String nameAddress1,
             @RequestParam(value = "nameAddress2") String nameAddress2,
             @RequestParam(value = "nameAddress3") String nameAddress3,
-            @RequestParam(value = "nameAddress4") String nameAddress4) throws UnsupportedEncodingException {
+            @RequestParam(value = "nameAddress4") String nameAddress4){
 
         int completed = -1;
         
-        completed = jdbcTemplate.update("UPDATE route "
-                + "SET nameAddress1 = ?, "
-                + "address1 = ?, "
-                + "nameAddress2 = ?, "
-                + "address2 = ?, "
-                + "nameAddress3 = ?, "
-                + "address3 = ?, "
-                + "nameAddress4 = ?, "
-                + "address4 = ? "
-                + "WHERE username = ?",
+        completed = jdbcTemplate.update("INSERT INTO route "
+                + "(username, origin, originAddress, "
+                + "nameAddress1, address1, "
+                + "nameAddress2, address2,"
+                + "nameAddress3, address3, "
+                + "nameAddress4, address4)"
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                username,
+                origin,
+                originAddress,
+                nameAddress1,
+                address1,
+                nameAddress2,
+                address2,
+                nameAddress3,
+                address3,
+                nameAddress4,
+                address4);
+        
+        if(completed==1){
+            System.out.println("Route saved on database"); 
+        } else if(completed==0) {
+            System.out.println("Couldn't save route");
+        }
+        return completed;
+    }
+    
+    @DeleteMapping("/deleteRoute")
+    @ResponseBody
+    public int deleteRoute(
+            @RequestParam(value = "username") String username,
+            @RequestParam(value = "origin") String origin,
+            @RequestParam(value = "nameAddress1") String nameAddress1,
+            @RequestParam(value = "nameAddress2") String nameAddress2,
+            @RequestParam(value = "nameAddress3") String nameAddress3,
+            @RequestParam(value = "nameAddress4") String nameAddress4){
+
+        int completed = -1;
+        
+        completed = jdbcTemplate.update("DELETE FROM route "
+                + "WHERE username=? AND origin=? AND nameAddress1 = ? AND nameAddress2 = ?"
+                + "AND nameAddress3 = ? "
+                + "AND nameAddress4 = ? ",
+                username,
+                origin,
                 nameAddress1,
                 nameAddress2,
                 nameAddress3,
-                nameAddress4,
-                address1,
-                address2,
-                address3,
-                address4 ,
-                username);
+                nameAddress4);
         
         if(completed==1){
-            System.out.println("Completed"); 
+            System.out.println("DELETED route"); 
         } else if(completed==0) {
-            System.out.println("Not completed");
+            System.out.println("Couldn't delete route");
         }
         return completed;
     }

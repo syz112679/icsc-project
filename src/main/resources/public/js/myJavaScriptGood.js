@@ -5,7 +5,6 @@ const apiUri='http://localhost:8080/api/';
 var app = new Vue({
     el: '#app',
     data: {
-        debug:1,
         username: '',
         message: 'Hello Vue!',
         baseSearchUrl: 'https://api.foursquare.com/v2/venues/search?client_id='+clientID+'&client_secret='+clientSecret+'&v=20180323',
@@ -71,9 +70,14 @@ var app = new Vue({
         startPlace: 'Current Location',
         enableLike:false,
         like: false,
-        wishList:[],
-        wishListAddress:[],
-    },   
+        wishList:[
+            {Origin: "Origin", Stop1: "Stop#1", Stop2: "Stop#2", Stop3: "Stop#3", Stop4: "Stop#4"},
+            {Origin: "Origin", Stop1: "Stop#1", Stop2: "Stop#2", Stop3: "Stop#3", Stop4: "Stop#4"},
+            {Origin: "Origin", Stop1: "Stop#1", Stop2: "Stop#2", Stop3: "Stop#3", Stop4: "Stop#4"},
+            {Origin: "Origin", Stop1: "Stop#1", Stop2: "Stop#2", Stop3: "Stop#3", Stop4: "Stop#4"},
+        ],
+
+    },
     mounted() {
             var name = "username" + "=";
             var decodedCookie = decodeURIComponent(document.cookie);
@@ -94,19 +98,15 @@ var app = new Vue({
             fetch(apiUri + "getRoute?username=" + this.username)
             .then(res => res.json())
             .then(data => {
+                app.wishList = [];
+                console.log(data)
                 data.forEach(function(item, index){
                     
                     app.wishList.push({Origin: item.nameAddress[0], 
                     Stop1: item.nameAddress[1],
                     Stop2: item.nameAddress[2],
                     Stop3: item.nameAddress[3],
-                    Stop4: item.nameAddress[4]}) 
-                app.wishListAddress.push({Origin: item.address[0], 
-                    Stop1: item.address[1],
-                    Stop2: item.address[2],
-                    Stop3: item.address[3],
-                    Stop4: item.address[4]}) 
-                
+                    Stop4: item.nameAddress[4]})   
             });
                
             })
@@ -124,7 +124,6 @@ var app = new Vue({
         searchRecommendation: function(section, whichStop)
         {
           // clear previous route display
-          console.log("section:" + section);
           for(var i=0; i<4; i++)
           {
             directionsDisplay[i].setMap(null);
@@ -133,7 +132,7 @@ var app = new Vue({
           if(section.includes('Stop'))
           {
               // clear markers
-              console.log('clear markers');
+
               if(app.recommendLists[whichStop]!=undefined)
               {
                 for(var i=0; i<app.recommendLists[whichStop].length; i++)
@@ -149,7 +148,7 @@ var app = new Vue({
           }
               app.customSelect[whichStop] = false;
               app.finalRecommendLists[whichStop] = [];
-              console.log('searchRecommendation called');
+
 
               // if same stop#, remove previous markers
               if(app.recommendLists[whichStop]!=undefined) {
@@ -211,7 +210,7 @@ var app = new Vue({
             } else {
                 console.log("fetch data error");
             }
-            console.log(ret);
+
             return ret;
         },
         fetchRoute:function(origins, dests, travelMode, thisStop, totalStops)
@@ -253,7 +252,7 @@ var app = new Vue({
                   console.log("can't find name for "+item);
               }
             });
-            console.log('destArr='+destArr);
+
             var service = new google.maps.DistanceMatrixService();
             service.getDistanceMatrix(
                 {
@@ -271,8 +270,8 @@ var app = new Vue({
             {
                 // See Parsing the Results for
                 // the basics of a callback function.
-                console.log(response);
-                console.log(status);
+                // console.log(response);
+                // console.log(status);
                 app.distanceMatrixs[thisStop] = response;
                 app.fetchCount++;
                 if(app.fetchCount >= totalStops)
@@ -304,9 +303,8 @@ var app = new Vue({
                   console.log("can't find name for "+item);
               }
             });
-            console.log(destArr);
             var service = new google.maps.DistanceMatrixService();
-            console.log(origin);
+
             service.getDistanceMatrix(
             {
                     origins: [origin],
@@ -323,14 +321,16 @@ var app = new Vue({
             {
                 // See Parsing the Results for
                 // the basics of a callback function.
-                console.log(response);
-                console.log(status);
+                //console.log(response);
+                //console.log(status);
                 app.distanceMatrixs[0] = response;
                 app.fetchCount++;
                 if(app.fetchCount >= totalStops)
                 {
                   app.computeRoute(totalStops);
                 }
+
+
             }
 
         },
@@ -339,10 +339,10 @@ var app = new Vue({
           item = app.recommendLists[whichStop][index];
           var googleGeo, myMark;
           var address = "";
-          if(item.address !== undefined) {
+          if(item.address != undefined) {
             address += item.address;
           }
-          if(item.name !== undefined) {
+          if(item.name != undefined) {
             address += " " + item.name;
           }
 
@@ -390,6 +390,7 @@ var app = new Vue({
                 {
                   alert(status);
                   setTimeout(app.drawSingleMarker(whichStop, index), 1000);
+
                 }
                 else
                 {
@@ -444,7 +445,7 @@ var app = new Vue({
               fetch(detailUrl)
                 .then(res => res.json())
                 .then(myJson => {
-                  console.log(myJson);
+
                   if(myJson.meta.code == '200') {
                     var name =  myMark.title;
                     var address = myJson.response.venue.location.address==undefined?"not avaliable":myJson.response.venue.location.address;
@@ -569,6 +570,7 @@ var app = new Vue({
                         {
                           alert('Please wait, Google map:' + status);
                           setTimeout(app.drawSingleMarker(whichStop, index), 1000);
+
                         }
                         else
                         {
@@ -587,8 +589,6 @@ var app = new Vue({
         },
         goClicked:function()
         {
-            if(app.stops[0].includes("Stop"))
-                return;
           this.fetchCount = 0;
           this.bestRouteName = [0,0,0,0,0];
           this.bestRouteAddress = [0,0,0,0,0];
@@ -613,9 +613,8 @@ var app = new Vue({
         },
         reset:function()
         {
-          console.log('reset');
+          // console.log('reset');
           this.limit = 5;
-          this.travelMode='WALKING';
           this.customSelect = {
             0:false,
             1:false,
@@ -661,7 +660,7 @@ var app = new Vue({
         },
         computeRoute:function (totalStops)
         {
-          //console.log('computeRoute called: totalStops=' + totalStops);
+          // console.log('computeRoute called: totalStops=' + totalStops);
 
           var dist = new Array(5);
           dist[0] = new Array(30);
@@ -738,8 +737,7 @@ var app = new Vue({
             app.bestRouteDetails[i-1] = {
               duration:app.distanceMatrixs[i-1].rows[dist[i][minIndex].parent].elements[minIndex].duration.text,
               distance:app.distanceMatrixs[i-1].rows[dist[i][minIndex].parent].elements[minIndex].distance.text,
-            }
-
+            },
             minIndex = dist[i][minIndex].parent;
           }
           for(var i = totalStops; i < 4; i++){
@@ -758,7 +756,6 @@ var app = new Vue({
           for(var i=0; i<4; i++)
           {
             directionsDisplay[i].setMap(null);
-
           }
           // Display bestRoute
           var count = 0;
@@ -788,14 +785,13 @@ var app = new Vue({
                 count += 1;
               } else{
                 console.log("directionsService failed: "+status);
+                console.log("request: ");
                 console.log(request);
-                console.log("request: "+request);
-                console.log("response"+response);
+                console.log("response:");
+                console.log(response);
               }
-             // console.log("directionsService failed: "+status);
-             // console.log("request: "+request);
-             // console.log("response"+response);
             });
+
           }
 
         },
@@ -917,34 +913,33 @@ var app = new Vue({
                 console.log(error)
             });
         },
-        deleteRouteFromUser:function(n)
-        {   
+        deleteRouteFromUser:function(index)
+        {
+            
+            console.log("index" + index)
+            
             fetch(apiUri + "deleteRoute?username=" + this.username
-            + "&origin="+app.wishList[n-1].Origin
-            + "&nameAddress1="+app.wishList[n-1].Stop1
-            + "&nameAddress2="+app.wishList[n-1].Stop2
-            + "&nameAddress3="+app.wishList[n-1].Stop3
-            + "&nameAddress4="+app.wishList[n-1].Stop4,
+            + "&origin="+
+            + "&nameAddress1="+app.bestRouteName[1]
+            + "&nameAddress2="+app.bestRouteName[2]
+            + "&nameAddress3="+app.bestRouteName[3]
+            + "&nameAddress4="+app.bestRouteName[4]
+            + "&originAddress="+app.bestRouteAddress[0]
+            + "&address1="+app.bestRouteAddress[1]
+            + "&address2="+app.bestRouteAddress[2]
+            + "&address3="+app.bestRouteAddress[3]
+            + "&address4="+app.bestRouteAddress[4],
             {
                 method: 'DELETE',
                 body: JSON.stringify()
             }).then(function() {
-                app.wishList.splice(app.wishList.indexOf(n),1);
-                app.wishListAddress.splice(app.wishListAddress.indexOf(n),1);
+                
             }).catch(function(error){
                 console.log(error)
             });
+            ç
         },
-        wishListDisplay:function(list, travelMode) {
-          var listToSent = [];
-          Object.values(list).forEach(function(item, index){
-            if(!item.includes('Origin')&&!item.includes('Stop')&&item!=undefined){
-                listToSent.push(item);
-            }
 
-          });
-          app.showBestRoute(listToSent, travelMode);
-        },
     }, // methods ends here
     computed:{
 

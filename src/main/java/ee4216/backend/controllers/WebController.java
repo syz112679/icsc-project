@@ -25,16 +25,19 @@ public class WebController {
    
     @RequestMapping(value="/")
     public String home(Principal principal, HttpServletResponse response){
-        
-        System.out.println(principal.getName());
         response.addCookie(new Cookie("username", principal.getName()));
         
-        return "home";
+        return "responsive_design";
     }
    
     @RequestMapping(value="/user")
     public String user(){
         return "user";
+    }
+    
+    @RequestMapping(value="/wishlist")
+    public String wishlist(){
+        return "wishlist_page";
     }
    
     @RequestMapping(value="/login")
