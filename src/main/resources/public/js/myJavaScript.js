@@ -1,6 +1,6 @@
 const clientID='4ACEA4ZFEMXM2KWH3U54K0AMSKQRFGK4VQCEUDVPQVIF1QXZ';
 const clientSecret='1IBYDVIO1PCMHVCWRTEDKEHCQ0MKFI1NE45FFT0UIKOISCGU';
-const apiUri='http://localhost:8080/api/';
+const apiUri='https://radiant-badlands-63956.herokuapp.com/api/';
 
 var app = new Vue({
     el: '#app',
